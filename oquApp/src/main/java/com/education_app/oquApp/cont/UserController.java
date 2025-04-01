@@ -4,7 +4,6 @@ import com.education_app.oquApp.model.User;
 import com.education_app.oquApp.service.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -20,6 +19,28 @@ public class UserController {
         this.userService = userService;
     }
 
+    @GetMapping("/register")
+    public String showRegistrationForm(Model model) {
+        model.addAttribute("user", new User());
+        return "register";
+    }
+
+    @PostMapping("/register")
+    public String registerUser(@ModelAttribute User user, RedirectAttributes redirectAttributes) {
+        try {
+            userService.saveUser(user);
+            redirectAttributes.addFlashAttribute("successMessage", "Registration successful! Please login.");
+            return "redirect:/users/login";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Registration failed: " + e.getMessage());
+            return "redirect:/users/register";
+        }
+    }
+
+    @GetMapping("/login")
+    public String showLoginForm() {
+        return "login";
+    }
 
     @GetMapping
     public String listUsers(Model model) {
@@ -28,55 +49,31 @@ public class UserController {
         return "userlist";
     }
 
-    @GetMapping("/create")
-    public String showCreateForm(Model model) {
-        model.addAttribute("user", new User());
-        return "user_create";
-    }
-
-    @PostMapping("/create")
-    public String createUser( @ModelAttribute("user") User user,
-                             BindingResult result,
-                             RedirectAttributes redirectAttributes) {
-        if (result.hasErrors()) {
-            return "user_create";
-        }
-
-        if (userService.findByEmail(user.getEmail()).isPresent()) {
-            result.rejectValue("email", "error.user", "Email already exists");
-            return "user_create";
-        }
-
-        userService.saveUser(user);
-        redirectAttributes.addFlashAttribute("success", "User created successfully");
-        return "redirect:/users";
-    }
-
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
-        User user = userService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user Id:" + id));
-        model.addAttribute("user", user);
+        userService.findById(id).ifPresent(user -> model.addAttribute("user", user));
         return "user_edit";
     }
 
-    @PostMapping("/update/{id}")
-    public String updateUser(@PathVariable Long id,  @ModelAttribute("user") User user,
-                             BindingResult result, RedirectAttributes redirectAttributes) {
-        if (result.hasErrors()) {
-            return "user_edit";
+    @PostMapping("/update")
+    public String updateUser(@ModelAttribute User user, RedirectAttributes redirectAttributes) {
+        try {
+            userService.updateUser(user);
+            redirectAttributes.addFlashAttribute("successMessage", "User updated successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error updating user: " + e.getMessage());
         }
-
-        user.setUser_id(id);
-        userService.updateUser(user);
-        redirectAttributes.addFlashAttribute("success", "User updated successfully");
         return "redirect:/users";
     }
 
-    @GetMapping("/delete/{id}")
+    @PostMapping("/delete/{id}")
     public String deleteUser(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        userService.deleteUser(id);
-        redirectAttributes.addFlashAttribute("success", "User deleted successfully");
+        try {
+            userService.deleteUser(id);
+            redirectAttributes.addFlashAttribute("successMessage", "User deleted successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting user: " + e.getMessage());
+        }
         return "redirect:/users";
     }
 }

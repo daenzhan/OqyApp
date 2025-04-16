@@ -24,11 +24,59 @@ public class Progress {
     private Course course;
 
     @Column(nullable = false)
-    private int totalTasks;
+    private int total_tasks;
 
     @Column(nullable = false)
-    private int completedTasks;
+    private int completed_tasks;
 
     @Column(nullable = false)
-    private double avgGrade;
+    private double avg_grade;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Course getCourse() {
+        return course;
+    }
+
+    public void setCourse(Course course) {
+        this.course = course;
+    }
+
+    public int getTotal_tasks() {
+        return total_tasks;
+    }
+
+    public void setTotal_tasks(int total_tasks) {
+        this.total_tasks = total_tasks;
+    }
+
+    public int getCompleted_tasks() {
+        return completed_tasks;
+    }
+
+    public void setCompleted_tasks(int completed_tasks) {
+        this.completed_tasks = completed_tasks;
+    }
+
+    public double getAvg_grade() {
+        return avg_grade;
+    }
+
+    public void setAvg_grade(double avg_grade) {
+        this.avg_grade = avg_grade;
+    }
 }

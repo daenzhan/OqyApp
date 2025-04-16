@@ -2,14 +2,14 @@ package com.education_app.oquApp.cont;
 
 import com.education_app.oquApp.model.User;
 import com.education_app.oquApp.service.UserService;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Optional;
 
-@Controller
+@RestController
 @RequestMapping("/users")
 public class UserController {
 
@@ -19,61 +19,60 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/register")
-    public String showRegistrationForm(Model model) {
-        model.addAttribute("user", new User());
-        return "register";
+    /*
+
+    {
+    "full_name": "Kazybaeva Tamara Bahramkyzy",
+    "email": "toma@gmail.com",
+    "password":"555",
+    "role": "STUDENT"
     }
+
+    */
 
     @PostMapping("/register")
-    public String registerUser(@ModelAttribute User user, RedirectAttributes redirectAttributes) {
+    public ResponseEntity<User> registerUser(@RequestBody User user) {
         try {
-            userService.saveUser(user);
-            redirectAttributes.addFlashAttribute("successMessage", "Registration successful! Please login.");
-            return "redirect:/users/login";
+            User savedUser = userService.saveUser(user);
+            return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Registration failed: " + e.getMessage());
-            return "redirect:/users/register";
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }
 
-    @GetMapping("/login")
-    public String showLoginForm() {
-        return "login";
-    }
+
 
     @GetMapping
-    public String listUsers(Model model) {
+    public ResponseEntity<List<User>> listUsers() {
         List<User> users = userService.findAllUsers();
-        model.addAttribute("users", users);
-        return "userlist";
+        return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
-    @GetMapping("/edit/{id}")
-    public String showEditForm(@PathVariable Long id, Model model) {
-        userService.findById(id).ifPresent(user -> model.addAttribute("user", user));
-        return "user_edit";
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        Optional<User> user = userService.findById(id);
+        return user.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
 
-    @PostMapping("/update")
-    public String updateUser(@ModelAttribute User user, RedirectAttributes redirectAttributes) {
+    @PutMapping("/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
         try {
-            userService.updateUser(user);
-            redirectAttributes.addFlashAttribute("successMessage", "User updated successfully");
+            user.setUser_id(id); // Ensure the ID is set
+            User updatedUser = userService.updateUser(user);
+            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error updating user: " + e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
-        return "redirect:/users";
     }
 
-    @PostMapping("/delete/{id}")
-    public String deleteUser(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         try {
             userService.deleteUser(id);
-            redirectAttributes.addFlashAttribute("successMessage", "User deleted successfully");
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting user: " + e.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return "redirect:/users";
     }
 }

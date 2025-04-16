@@ -27,6 +27,21 @@
           <label for="full_name" class="form-label">Full Name</label>
           <input type="text" class="form-control" id="full_name" th:field="*{full_name}">
         </div>
+        <div class="mb-3">
+          <label class="form-label">Register as:</label>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" id="student" th:field="*{role}" value="STUDENT" checked>
+            <label class="form-check-label" for="student">
+              Student
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" id="teacher" th:field="*{role}" value="TEACHER">
+            <label class="form-check-label" for="teacher">
+              Teacher
+            </label>
+          </div>
+        </div>
         <button type="submit" class="btn btn-primary w-100">Register</button>
       </form>
 
